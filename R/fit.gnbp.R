@@ -1,74 +1,74 @@
-#####################################################################################
-# \name{fit.gnbp}
-
-# \title{Fit a Conditional Gaussian Bayesian Network to QTL data}
-
-# \description{Learn the structure of a genotype-phenotype network from 
-#   quantitative trait loci (QTL) data and the conditional probability table 
-#   for each node in the network using the PC algorithm and the EM algorithm 
-#   implemented in the RHugin package. 
-# }
+###################################################################################
+# \name{fit-methods}
+# \alias{fit.gnbp}
+# \alias{fit.dbn}
+# %- Also NEED an '\alias' for EACH other topic documented here.
+# \title{Fit a Conditional Gaussian Bayesian Network or Discrete Bayesian Network to QTL data}
 # 
+# \description{Learn the structure of a genotype-phenotype network from quantitative trait loci (QTL) data and the conditional probability table for each node in the network. 
+# }
 # \usage{
-#   fit.gnbp(geno,pheno,constraints,learn="TRUE",edgelist,type ="cg",
+#   ## Fit a conditional gaussian or a discrete bayesian network using RHugin.
+#   fit.gnbp(geno,pheno,constraints,learn="TRUE",graph,type ="cg",
 #            alpha=0.001,tol=1e-04,maxit=0)
-
+#   ## Fit a discrete bayesian network using bnlearn.
+#   fit.dbn(geno,pheno,graph,learn="TRUE",method="hc",whitelist,blacklist)
 # }
-# 
+# %- maybe also 'usage' for other objects documented here.
 # \arguments{
-#   \item{geno}{a data frame of column vectors of class factor 
-#   (or one that can be coerced to that class) and non-empty column names.  
+#   \item{geno}{a data frame of column vectors of class factor (or one that can be coerced to that class) and non-empty column names.
+#               
 #   }
-#   \item{pheno}{a data frame of column vectors of class numeric if 
-# \code{type = "cg"} or class factor if \code{type = "db"} and non-empty column names. 
+#   \item{pheno}{a data frame of column vectors of class numeric for \code{fit.gnpb} if \code{type = "cg"} or class factor if \code{type = "db"} and for \code{fit.dbn}. Non-empty column names. 
 #   }
-#   \item{constraints}{an optional list of constraints on the edges for 
-# specifying required and forbidden edges. See details.
+#   \item{constraints}{an optional list of constraints on the edges for specifying required and forbidden edges for \code{fit.dbn}. See details.
 #   }
-#   \item{learn}{a boolean value. If TRUE (default), the network structure 
-# will be learnt using the PC algorithm in RHugin package. 
-# If FALSE, only conditional probabilities will be learnt.
+#   \item{learn}{a boolean value. If TRUE (default), the network structure will be learnt. If FALSE, only conditional probabilities will be learnt (a graph must be provided in this case.)
 #   }
-#   \item{edgelist}{a list of edges to be provided if learn == FALSE.
+#   \item{graph}{graph structure of class "graphNEL" or a data frame with two columns of (labeled "from" and "to"), containing a set of edges to be included in the graph to be provided if learn == FALSE. See details.
 #   }
-#   \item{type}{specify the type of network. \code{"cg"} for 
-# \code{Conditional Gaussian} (default) and \code{"db"} for \code{Discrete Bayesian}.
+#   \item{type}{specify the type of network for \code{fit.gnbp}. \code{"cg"} for \code{Conditional Gaussian} (default) and \code{"db"} for \code{Discrete Bayesian}.
 #   }
-#   \item{alpha}{a single numeric value specifying the significance level 
-# (for use with RHugin). Default is 0.001.
+#   
+#   \item{method}{a character string. The score-based or constraint-based algorithms available in the package \pkg{bnlearn}. Valid options are \code{"hc"}, \code{"tabu"}, \code{"gs"}, \code{"iamb"}, \code{"fast.iamb"}, \code{"inter.iamb"}, \code{"mmhc"}. See details below. 
 #   }
-#   \item{tol}{a positive numeric value (optional) specifying the tolerance 
-# for EM algorithm to learn conditional probability tables (for use with RHugin).
-# Default value is 1e-04. See \code{learn.cpt} for details.
+#   
+#   \item{whitelist}{a data frame with two columns of (labeled "from" and "to"), containing a set of edges to be included in the graph.
+#   }
+#   \item{blacklist}{a data frame with two columns (labeled "from" and "to"), containing a set of edges NOT to be included in the graph.
+#   }
+#   
+#   \item{alpha}{a single numeric value specifying the significance level (for use with RHugin). Default is 0.001.
+#   }
+#   \item{tol}{a positive numeric value (optional) specifying the tolerance for EM algorithm to learn conditional probability tables (for use with RHugin). Default value is 1e-04. See \code{learn.cpt} for details.
 #              
 #   }
-#   \item{maxit}{a positive integer value (optional) specifying the 
-# maximum number of iterations of EM algorithm to learn 
-# conditional probability tables (for use with RHugin). See \code{learn.cpt} for details.
+#   \item{maxit}{a positive integer value (optional) specifying the maximum number of iterations of EM algorithm to learn conditional probability tables (for use with RHugin). See \code{learn.cpt} for details.
 #   }
-# 
-#   \value{
-#     Returns an object of class "gpfit". 
-#     \item{gp}{a pointer to a compiled RHugin domain. 
-#       There is a cpt table associated with each node in the network.}
-#     \item{gp_nodes}{a data frame containing information about 
-#       nodes for internal use with other functions.}
-#     \item{gp_flag}{a character string specifying the type of 
-#         network (\code{Conditional Gaussian} or \code{Discrete Bayesian})}
+# \value{
+#     \code{fit.gnbp} returns an object of class "gpfit" containing the following components.
 #     
+#     \item{gp}{a pointer to a compiled RHugin domain that is the inferred network structure and the conditional probability tables for each node in the network.}
+#     \item{gp_nodes}{a data frame containing information about nodes for internal use with other functions.}
+#     \item{gp_flag}{a character string specifying the type of network : "cg" for (\code{Conditional Gaussian} or "db"/"dbn" for \code{Discrete Bayesian})}
+#     
+#     \code{fit.dbn} returns an object of class "dbnfit" containing the following components. 
+#     \item{dbn}{an object of class bn. See \code{\linkS3class{bn-class}} for details. This object contains the inferred network structure and the conditional probability tables for each node in the network.}
+#     \item{dbn_nodes}{a data frame containing information about nodes for internal use with other functions.}
+#     \item{dbn_flag}{a character string specifying the type of network \code{"dbn"} for \code{Discrete Bayesian})}
 #   }
+
 
 ###################################################################################
 ## Learn Bayesian Network Structure
 ## from QTL data
 ###################################################################################
-fit.gnbp=function(geno,pheno,constraints,learn="TRUE",edgelist,type ="cg",
+fit.gnbp=function(geno,pheno,constraints,learn="TRUE",graph,type ="cg",
                   alpha=0.001,tol=1e-04,maxit=0)
 
   {
   
-    requireNamespace("RHugin") || warning("Package not loaded: RHugin");
-  
+
     ## Geno Class Check ##
     for(i in 1:dim(geno)[2])
       if (class(geno[,i])!="factor")
@@ -99,6 +99,9 @@ fit.gnbp=function(geno,pheno,constraints,learn="TRUE",edgelist,type ="cg",
     ## Create RHugin domain
     ## Specify nodes and constraints
     #####################################
+    
+
+      requireNamespace("RHugin") || stop("Package not loaded: RHugin");
      
     ## Create a RHugin domain
     network<-RHugin::hugin.domain()
@@ -116,7 +119,6 @@ fit.gnbp=function(geno,pheno,constraints,learn="TRUE",edgelist,type ="cg",
     class_nodes=cbind(class_nodes,t(cbind(t(rep("pheno",dim(pheno)[2])),t(rep("geno",dim(geno)[2])))))
     
     colnames(class_nodes)=c("node","class","levels","type")
-    
      
     Xpheno=which(class_nodes[,"type"]=="pheno")
     Xgeno=which(class_nodes[,"type"]=="geno")
@@ -133,7 +135,6 @@ fit.gnbp=function(geno,pheno,constraints,learn="TRUE",edgelist,type ="cg",
 
     for (node in 1:length(Xgeno))
       RHugin::add.node(network,class_nodes[Xgeno[node],"node"],states=levels(Data[,class_nodes[Xgeno[node],"node"]]))
-
     
     ## Set cases
     RHugin::set.cases(network,Data)
@@ -142,7 +143,8 @@ fit.gnbp=function(geno,pheno,constraints,learn="TRUE",edgelist,type ="cg",
     {
  
     # Disallow interaction between discrete nodes
-    qtl_constraints<-.GenConstraints(class_nodes)
+    qtl_constraints<-.GenConstraints(class_nodes,type)
+  
     
       if(!missing(constraints))
       {
@@ -174,15 +176,24 @@ fit.gnbp=function(geno,pheno,constraints,learn="TRUE",edgelist,type ="cg",
     }else
       
     {
-      if (missing(edgelist))
-        stop("if learn == TRUE, edgelist must be provided.")
+      if (missing(graph))
+        stop("if learn == FALSE, a graph structure must be provided.")
       
-      for (i in 1:length(edgelist))
+      if(class(graph)=="graphNEL")
       {
-        edges<-unlist(edgelist[[i]])
-        RHugin::add.edge(network,edges[,2],edges[,1])
+        edges<-data.frame((get.edgelist(igraph.from.graphNEL(graph))))
+        edges[,1]<-as.character(edges[,1])
+        edges[,2]<-as.character(edges[,2])
+        
+        for (i in 1:dim(edges)[1])
+        RHugin::add.edge(network,edges[i,2],edges[i,1])   
       }
-
+        
+      if(class(graph)=="data.frame") 
+      {
+        for(i in 1:dim(graph)[1])
+          RHugin::add.edge(network,graph[i,2],graph[i,1])
+      }
     }
   
     ##Add experience table to all nodes
@@ -192,16 +203,53 @@ fit.gnbp=function(geno,pheno,constraints,learn="TRUE",edgelist,type ="cg",
     ## Compile network and learn cpt
     RHugin::compile(network)
     RHugin::learn.cpt(network,tol=tol,maxit=maxit)
-        
-    gpfit<-list(gp=network,gp_nodes=class_nodes,gp_flag=type)
+    
+    ## get marginals
+    cpt<-.get.marginal.bn(network,class_nodes)
+    
+    
+    ## Get geno and pheno col nos.
+    Y=which(class_nodes[,"type"]=="geno")
+    X=which(class_nodes[,"type"]=="pheno")
+    
+    ## Genotype frequencies (marginals)
+    genomarginal<- matrix(cpt[class_nodes[Y,1],3:ncol(cpt)],
+                          nrow = length(class_nodes[Y,1]),
+                          ncol = as.numeric(max(class_nodes[Y,3])),
+                          dimnames = list(class_nodes[Y,1],colnames(cpt)[3:(3-1+as.numeric(max(class_nodes[Y,3])))]))
+    
+    genomarginal = list(freq = genomarginal)
+    
+    if (type == "db")
+    {
+     phenom = matrix(cpt[class_nodes[X,1],3:ncol(cpt)],
+                       nrow = length(class_nodes[X,1]),
+                       ncol = as.numeric(max(class_nodes[X,3])))
+     
+      phenomarginal<- matrix(cpt[class_nodes[X,1],3:ncol(cpt)],
+                             nrow = length(class_nodes[X,1]),
+                             ncol = as.numeric(max(class_nodes[X,3])),
+                             dimnames = list(class_nodes[X,1],colnames(cpt)[3:(3-1+as.numeric(max(class_nodes[X,3])))]))
+      
+      phenomarginal = list(freq = phenomarginal)
+    }
+
+    if (type == "cg")    
+    {
+      phenomarginal=list(mean = as.matrix(cpt[class_nodes[X,1],1]),
+                               var = as.matrix(cpt[class_nodes[X,1],2]))
+    }
+    
+    gpfit<-list(gp=network,marginal=list(pheno=phenomarginal,geno=genomarginal),
+                gp_nodes=class_nodes,gp_flag=type)
     
     class(gpfit)<-"gpfit"
     
-    return(gpfit)   
+    return(gpfit)
    
   }  
 
-.GenConstraints=function(class_nodes)
+.GenConstraints=function(class_nodes,type)
 {
   X=which(class_nodes[,"type"]=="geno")
   blackL<-matrix(0,nrow=choose(length(X),2) ,ncol=2)
@@ -212,7 +260,6 @@ fit.gnbp=function(geno,pheno,constraints,learn="TRUE",edgelist,type ="cg",
       blackL[k,]=cbind(class_nodes[X[i],1],class_nodes[X[j],1])
       k=k+1
     }
-  
 
   undirected.forbidden <- vector("list", nrow(blackL))
   
@@ -222,12 +269,89 @@ fit.gnbp=function(geno,pheno,constraints,learn="TRUE",edgelist,type ="cg",
   }
   
   undirected <- list(required = NULL,forbidden = undirected.forbidden)
+  directed<-NULL
+  
+  if (type=="db")
+  {
+    Y = which(class_nodes[,"type"]=="pheno")
+    
+    for (i in 1:length(Y))
+      for( j in 1:length(X))
+        blackL=rbind(blackL,cbind(class_nodes[Y[i]],class_nodes[X[j]])) 
+    
+    directed.forbidden <- vector("list", nrow(blackL))
+    
+    for (i in 1:nrow(blackL))
+    {
+      directed.forbidden[[i]] <- blackL[i,]
+    }
+    
+    directed <- list(required = NULL,forbidden = directed.forbidden)
+  }
   
   # put into constraints list
-  qtl_constraints <- list(directed = NULL, undirected = undirected)
+  qtl_constraints <- list(directed = directed, undirected = undirected)
   return(qtl_constraints)
 }
 
-
+## get marginals 
+.get.marginal.bn=function(network,class_nodes)
+  
+{
+  
+  ## create matrices to store results
+  marg_mean<-matrix(nrow=dim(class_nodes)[1],ncol=1)
+  marg_var<-matrix(nrow=dim(class_nodes)[1],ncol=1)
+  marg_freq<-matrix(nrow=dim(class_nodes)[1],ncol=as.numeric(max(class_nodes[,3])))
+  
+  
+  ## get mean and var
+  for (j in 1:dim(class_nodes)[1])
+  {  
+    
+    pmarginal<-RHugin::get.marginal(network,class_nodes[j,1])
+    if(class_nodes[j,2]=="numeric")
+    {
+      marg_mean[j,1]<-pmarginal$mean
+      marg_var[j,1]<-unlist(pmarginal$cov)
+    }
+    
+    
+    if(class_nodes[j,2]=="factor")
+    {
+#       print(marg_freq)
+#       print(pmarginal$table)
+#       print(class_nodes)
+      marg_freq[j,1:length(pmarginal$table[,2])]<-pmarginal$table[,2]
+    }
+    
+  }
+  
+  ## annotate rows and columns     
+  
+  if(length(marg_freq)!=0)
+  {
+    freqnames<-matrix(nrow=as.numeric(max(class_nodes[,3])),ncol=1)
+    
+    for (i in 1:max(class_nodes[,3]))
+      freqnames[i]=paste("state",i,sep="")
+    
+    colnames(marg_freq)=freqnames
+  }
+  
+  if(length(marg_mean)!=0)
+  {
+    colnames(marg_var)=c("var")
+    colnames(marg_mean)=c("mean")
+  }
+  
+  marginal<-cbind(cbind(marg_mean,marg_var),marg_freq)
+  rownames(marginal)=class_nodes[,1]
+  
+  ## return cpt
+  
+  return(marginal)
+  
+}
 
 

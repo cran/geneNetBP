@@ -54,7 +54,7 @@ head(hdl,n=3)
 ###################################################
 ## mouse.cgbn<-fit.gnbp(mousegeno,mousepheno,alpha = 0.1)
 ## ## plot method for graph objects
-## plot.cgbn(mouse.cgbn) 
+## plot(mouse.cgbn) 
 
 
 ###################################################
@@ -87,7 +87,7 @@ head(hdl,n=3)
 ###################################################
 ### code chunk number 13: G (eval = FALSE)
 ###################################################
-## yeast.dbn<-fit.dbn(yeastgeno,yeastpheno_dis,method="mmhc")
+## yeast.dbn<-fit.dbn(yeastgeno,yeastpheno,method="mmhc")
 
 
 ###################################################
